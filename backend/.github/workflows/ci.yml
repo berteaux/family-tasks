@@ -1,0 +1,30 @@
+name: CI/CD Pipeline Backend
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24.x'
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./backend
+
+    - name: Run unit tests
+      run: npm test
+      working-directory: ./backend
