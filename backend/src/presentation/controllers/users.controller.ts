@@ -1,56 +1,54 @@
-import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
-import { GetAllUsers } from '@src/domain/usecases/GetAllUsers';
-import { GetUserById } from '@domain/usecases/GetUserById';
-import { RegisterUser } from '@domain/usecases/RegisterUser';
-import { UserResponseDto } from '@presentation/dtos/user-response';
+import { RegisterUser } from '../../application/usecases/register-user';
 import type { CreateUserDto } from '../dtos/create-user';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  Post,
+} from '@nestjs/common';
+import {
+  USER_REPOSITORY,
+  type UserRepository,
+} from '@domain/ports/user-repository';
+import { UserOutput } from '../../application/dtos/user.output';
+import { User } from '@domain/entities/User';
+import { RegisterUserInput } from '../../application/dtos/register-user.input';
 
 @Controller('users')
 export class UsersController {
   constructor(
+    @Inject(USER_REPOSITORY) private readonly userRepository: UserRepository,
     private registerUser: RegisterUser,
-    private getUserById: GetUserById,
-    private getAllUsers: GetAllUsers,
   ) {}
 
   @Get()
-  async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.getAllUsers.execute();
-
-    return users.map((user: UserResponseDto) => ({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    }));
+  async findAll(): Promise<UserOutput[]> {
+    const users = await this.userRepository.findAll();
+    return users.map((user: User) => UserOutput.fromDomain(user));
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<UserResponseDto | null> {
+  async findById(@Param('id') id: string): Promise<UserOutput | null> {
     if (!id) {
       return null;
     }
 
-    const user = await this.getUserById.execute(id);
+    const user = await this.userRepository.findById(id);
     if (!user) {
       return null;
     }
 
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    } as UserResponseDto;
+    return UserOutput.fromDomain(user);
   }
 
   @Post()
   @HttpCode(201)
-  async create(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
-    const user = await this.registerUser.execute(dto.email, dto.password);
-
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    };
+  async create(@Body() httpDto: CreateUserDto): Promise<UserOutput> {
+    const input = new RegisterUserInput(httpDto.email, httpDto.password);
+    const user = await this.registerUser.execute(input);
+    return user;
   }
 }

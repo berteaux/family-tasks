@@ -1,7 +1,6 @@
-// ✅ infrastructure/infrastructure.module.ts
 import { Module } from '@nestjs/common';
 import { InMemoryUserRepository } from './persistance/InMemoryUserRepository';
-import { USER_REPOSITORY } from '@domain/repositories/IUserRepository';
+import { USER_REPOSITORY } from '@domain/ports/user-repository';
 
 @Module({
   providers: [
