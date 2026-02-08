@@ -1,4 +1,3 @@
-import { RegisterUser } from '../../application/usecases/register-user';
 import type { CreateUserDto } from '../dtos/create-user';
 import {
   Body,
@@ -15,7 +14,10 @@ import {
 } from '@domain/ports/user-repository';
 import { UserOutput } from '../../application/dtos/user.output';
 import { User } from '@domain/entities/User';
-import { RegisterUserInput } from '../../application/dtos/register-user.input';
+import {
+  RegisterUser,
+  RegisterUserInput,
+} from '@application/usecases/user/register-user';
 
 @Controller('users')
 export class UsersController {

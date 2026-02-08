@@ -1,11 +1,10 @@
 import { Test } from '@nestjs/testing';
-import { RegisterUser } from './register-user';
+import { RegisterUser, RegisterUserInput } from './register-user';
 import {
   USER_REPOSITORY,
   type UserRepository,
 } from '@domain/ports/user-repository';
 import { User } from '@domain/entities/User';
-import { RegisterUserInput } from '@application/dtos/register-user.input';
 
 describe('RegisterUser', () => {
   let registerUser: RegisterUser;

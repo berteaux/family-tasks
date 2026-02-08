@@ -4,8 +4,17 @@ import {
   type UserRepository,
 } from '@domain/ports/user-repository';
 import { User } from '@domain/entities/User';
-import { RegisterUserInput } from '../dtos/register-user.input';
-import { UserOutput } from '../dtos/user.output';
+import { UserOutput } from '../../dtos/user.output';
+
+export class RegisterUserInput {
+  public readonly email: string;
+  public readonly password: string;
+
+  constructor(email: string, password: string) {
+    this.email = email;
+    this.password = password;
+  }
+}
 
 @Injectable()
 export class RegisterUser {
