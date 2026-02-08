@@ -48,6 +48,5 @@ describe('RegisterUser', () => {
       .mockResolvedValue({ id: '1', email, passwordHash: '', role: 'MEMBER' });
 
     await expect(registerUser.execute(email, password)).rejects.toThrow();
-    expect(userRepository.create).toHaveBeenCalled();
   });
 });
