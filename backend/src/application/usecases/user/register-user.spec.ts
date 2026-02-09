@@ -5,8 +5,9 @@ import {
   type UserRepository,
 } from '@domain/ports/user-repository';
 import { User } from '@domain/entities/User';
+import { EmailAlreadyExistsException } from '@domain/exceptions/email-already-exists.exception';
 
-describe('RegisterUser', () => {
+describe('RegisterUser Use Case', () => {
   let registerUser: RegisterUser;
   let userRepository: UserRepository;
 
@@ -28,9 +29,9 @@ describe('RegisterUser', () => {
     userRepository = module.get<UserRepository>(USER_REPOSITORY);
   });
 
-  it('should create a user', async () => {
+  it('should register new user successfully', async () => {
     const email = 'user1@example.com';
-    const password = 'pass1';
+    const password = 'Password1';
 
     jest.spyOn(userRepository, 'findByEmail').mockResolvedValue(null);
 
@@ -53,9 +54,10 @@ describe('RegisterUser', () => {
 
     jest.spyOn(userRepository, 'findByEmail').mockResolvedValue(existingUser);
 
-    const input = new RegisterUserInput(email, 'pass');
+    const input = new RegisterUserInput(email, 'Password1');
     await expect(registerUser.execute(input)).rejects.toThrow(
-      'Email already exists',
+      EmailAlreadyExistsException,
     );
+    expect(userRepository.save).not.toHaveBeenCalled();
   });
 });

@@ -5,6 +5,9 @@ import {
 } from '@domain/ports/user-repository';
 import { User } from '@domain/entities/User';
 import { UserOutput } from '../../dtos/user.output';
+import { Email } from '@domain/value-objects/Email';
+import { Password } from '@domain/value-objects/Password';
+import { EmailAlreadyExistsException } from '@domain/exceptions/email-already-exists.exception';
 
 export class RegisterUserInput {
   public readonly email: string;
@@ -23,13 +26,16 @@ export class RegisterUser {
   ) {}
 
   async execute(input: RegisterUserInput): Promise<UserOutput> {
-    const existing = await this.userRepository.findByEmail(input.email);
+    const email = Email.create(input.email);
+    const password = Password.create(input.password);
+
+    const existing = await this.userRepository.findByEmail(email.getValue());
 
     if (existing) {
-      throw new Error('Email already exists');
+      throw new EmailAlreadyExistsException(email.getValue());
     }
 
-    const passwordHash = input.password; //TODO: hash password
+    const passwordHash = password.getValue(); //TODO: hash password
 
     const user = User.create(input.email, passwordHash);
 

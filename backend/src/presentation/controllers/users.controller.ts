@@ -1,4 +1,3 @@
-import type { CreateUserDto } from '../dtos/create-user';
 import {
   Body,
   Controller,
@@ -18,6 +17,7 @@ import {
   RegisterUser,
   RegisterUserInput,
 } from '@application/usecases/user/register-user';
+import { CreateUserDto } from '@presentation/dtos/create-user.dto';
 
 @Controller('users')
 export class UsersController {
