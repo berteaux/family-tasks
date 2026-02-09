@@ -25,36 +25,79 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Prerequisites
+
+- [Docker](https://www.docker.com/products/docker-desktop/)
+- Docker Compose (included with Docker Desktop)
+
 ## Project setup
 
+### First time setup
+
 ```bash
-$ npm install
+$ docker-compose up --build
 ```
 
-## Compile and run the project
+The application will be available at `http://localhost:3000`
+
+PostgreSQL will be available at `localhost:5432` with credentials:
+
+- Database: `family-task`
+- User: `dev`
+- Password: `dev`
+
+## Running the Application
 
 ```bash
-# development
-$ npm run start
+# Start development environment (app + database)
+$ docker-compose up
 
-# watch mode
-$ npm run start:dev
+# Start in detached mode (run in background)
+$ docker-compose up -d
 
-# production mode
-$ npm run start:prod
+# View logs
+$ docker-compose logs -f app
+
+# Stop containers
+$ docker-compose down
+
+# Stop and remove database data
+$ docker-compose down -v
 ```
 
-## Run tests
+## Run Tests
 
 ```bash
-# unit tests
-$ npm run test
+# Unit tests
+$ docker-compose exec app npm test
 
-# e2e tests
-$ npm run test:e2e
+# E2E tests
+$ docker-compose exec app npm run test:e2e
 
-# test coverage
-$ npm run test:cov
+# Test coverage
+$ docker-compose exec app npm run test:cov
+```
+
+## Useful Commands
+
+```bash
+# Rebuild after dependency changes
+$ docker-compose up --build
+
+# Access app container shell
+$ docker-compose exec app sh
+
+# Access PostgreSQL
+$ docker-compose exec db psql -U dev -d nestapp
+
+# Install new packages
+$ docker-compose exec app npm install
+
+# Format code
+$ docker-compose exec app npm run format
+
+# Lint
+$ docker-compose exec app npm run lint
 ```
 
 ## Deployment

@@ -1,0 +1,29 @@
+name: family-task
+services:
+  app:
+    container_name: family-task-backend
+    build: .
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      DATABASE_URL: postgresql://dev:dev@db:5432/family-task
+    depends_on:
+      - db
+
+  db:
+    container_name: family-task-postgres
+    image: postgres:16-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: family-task
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
