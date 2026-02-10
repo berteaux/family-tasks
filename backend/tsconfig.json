@@ -6,7 +6,7 @@
     "noUnusedParameters": true,
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "resolvePackageJsonExports": true,
+
     "esModuleInterop": true,
     "isolatedModules": true,
     "declaration": true,
@@ -21,7 +21,8 @@
       "@domain/*": ["./src/domain/*"],
       "@application/*": ["./src/application/*"],
       "@infrastructure/*": ["./src/infrastructure/*"],
-      "@presentation/*": ["./src/presentation/*"]
+      "@presentation/*": ["./src/presentation/*"],
+      "@prisma-generated/*": ["./generated/prisma/*"]
     },
     "incremental": true,
     "forceConsistentCasingInFileNames": true,

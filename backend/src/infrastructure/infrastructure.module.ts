@@ -1,18 +1,20 @@
 import { Module } from '@nestjs/common';
-import { InMemoryUserRepository } from './persistance/in-memory-user.repository';
 import { USER_REPOSITORY } from '@domain/ports/user-repository';
 import { TASK_REPOSITORY } from '@domain/ports/task-repository';
-import { InMemoryTaskRepository } from './persistance/in-memory-task.repository';
+import { PrismaService } from './database/prisma.service';
+import { PrismaUserRepository } from './persistance/prisma-user.repository';
+import { PrismaTaskRepository } from './persistance/prisma-task.repository';
 
 @Module({
   providers: [
+    PrismaService,
     {
       provide: USER_REPOSITORY,
-      useClass: InMemoryUserRepository,
+      useClass: PrismaUserRepository,
     },
     {
       provide: TASK_REPOSITORY,
-      useClass: InMemoryTaskRepository,
+      useClass: PrismaTaskRepository,
     },
   ],
   exports: [USER_REPOSITORY, TASK_REPOSITORY],

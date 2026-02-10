@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Enums
+enum UserRole {
+  MANAGER
+  MEMBER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+// Models
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(MEMBER)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tasks Task[]
+
+  @@map("users")
+}
+
+model Task {
+  id               String     @id @default(uuid())
+  title            String
+  description      String
+  status           TaskStatus @default(TODO)
+  assignedToUserId String?    @map("assigned_to_user_id")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  assignedToUser User? @relation(fields: [assignedToUserId], references: [id], onDelete: SetNull)
+
+  @@index([assignedToUserId])
+  @@map("tasks")
+}
