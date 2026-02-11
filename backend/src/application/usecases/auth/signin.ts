@@ -8,6 +8,11 @@ import {
   type PasswordHasher,
 } from '@domain/ports/password-hasher';
 import { InvalidCredentialsException } from '@domain/exceptions/invalid-credentials.exception';
+import {
+  TOKEN_GENERATOR,
+  type TokenGenerator,
+} from '@domain/ports/token-generator';
+import { AuthOutput } from '@application/dtos/auth.output';
 
 export class SigninInput {
   public readonly email: string;
@@ -24,9 +29,10 @@ export class Signin {
   constructor(
     @Inject(USER_REPOSITORY) private userRepository: UserRepository,
     @Inject(PASSWORD_HASHER) private passwordHasher: PasswordHasher,
+    @Inject(TOKEN_GENERATOR) private tokenGenerator: TokenGenerator,
   ) {}
 
-  async execute(input: SigninInput): Promise<boolean> {
+  async execute(input: SigninInput): Promise<AuthOutput> {
     const user = await this.userRepository.findByEmail(input.email);
 
     if (!user) {
@@ -42,7 +48,14 @@ export class Signin {
       throw new InvalidCredentialsException();
     }
 
-    return true;
-    // Authentication successful, you can return a token or user info here instead of just true
+    const token = await this.tokenGenerator.generate({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    const expiresIn = this.tokenGenerator.getExpirationTime();
+
+    return AuthOutput.create(token, expiresIn);
   }
 }

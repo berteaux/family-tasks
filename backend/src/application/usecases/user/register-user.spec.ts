@@ -4,12 +4,17 @@ import {
   USER_REPOSITORY,
   type UserRepository,
 } from '@domain/ports/user-repository';
+import {
+  PASSWORD_HASHER,
+  type PasswordHasher,
+} from '@domain/ports/password-hasher';
 import { User } from '@domain/entities/User';
 import { EmailAlreadyExistsException } from '@domain/exceptions/email-already-exists.exception';
 
 describe('RegisterUser Use Case', () => {
   let registerUser: RegisterUser;
   let userRepository: UserRepository;
+  let passwordHasher: PasswordHasher;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -22,11 +27,19 @@ describe('RegisterUser Use Case', () => {
             findByEmail: jest.fn(),
           },
         },
+        {
+          provide: PASSWORD_HASHER,
+          useValue: {
+            hash: jest.fn().mockResolvedValue('$2b$10$mockedHashedPassword'),
+            compare: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     registerUser = module.get<RegisterUser>(RegisterUser);
     userRepository = module.get<UserRepository>(USER_REPOSITORY);
+    passwordHasher = module.get<PasswordHasher>(PASSWORD_HASHER);
   });
 
   it('should register new user successfully', async () => {
@@ -39,6 +52,7 @@ describe('RegisterUser Use Case', () => {
     const result = await registerUser.execute(input);
 
     expect(result.email).toEqual(email);
+    expect(passwordHasher.hash).toHaveBeenCalledWith(password);
     expect(userRepository.save).toHaveBeenCalledTimes(1);
     expect(userRepository.save).toHaveBeenCalledWith(
       expect.objectContaining({
