@@ -8,6 +8,10 @@ import { UserOutput } from '../../dtos/user.output';
 import { Email } from '@domain/value-objects/Email';
 import { Password } from '@domain/value-objects/Password';
 import { EmailAlreadyExistsException } from '@domain/exceptions/email-already-exists.exception';
+import {
+  PASSWORD_HASHER,
+  type PasswordHasher,
+} from '@domain/ports/password-hasher';
 
 export class RegisterUserInput {
   public readonly email: string;
@@ -23,6 +27,7 @@ export class RegisterUserInput {
 export class RegisterUser {
   constructor(
     @Inject(USER_REPOSITORY) private userRepository: UserRepository,
+    @Inject(PASSWORD_HASHER) private passwordHasher: PasswordHasher,
   ) {}
 
   async execute(input: RegisterUserInput): Promise<UserOutput> {
@@ -35,7 +40,7 @@ export class RegisterUser {
       throw new EmailAlreadyExistsException(email.getValue());
     }
 
-    const passwordHash = password.getValue(); //TODO: hash password
+    const passwordHash = await this.passwordHasher.hash(password.getValue());
 
     const user = User.create(input.email, passwordHash);
 

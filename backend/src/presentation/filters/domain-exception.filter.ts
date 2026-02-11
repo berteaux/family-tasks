@@ -8,6 +8,7 @@ import { Response } from 'express';
 import { InvalidEmailException } from '@domain/exceptions/invalid-email.exception';
 import { WeakPasswordException } from '@domain/exceptions/weak-password.exception';
 import { EmailAlreadyExistsException } from '@domain/exceptions/email-already-exists.exception';
+import { InvalidCredentialsException } from '@domain/exceptions/invalid-credentials.exception';
 
 @Catch()
 export class DomainExceptionFilter implements ExceptionFilter {
@@ -19,6 +20,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
       [InvalidEmailException.name, HttpStatus.BAD_REQUEST],
       [WeakPasswordException.name, HttpStatus.BAD_REQUEST],
       [EmailAlreadyExistsException.name, HttpStatus.CONFLICT],
+      [InvalidCredentialsException.name, HttpStatus.UNAUTHORIZED],
     ]);
 
     const status =
