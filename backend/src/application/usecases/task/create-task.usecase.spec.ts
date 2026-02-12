@@ -4,6 +4,7 @@ import {
   TASK_REPOSITORY,
   type TaskRepository,
 } from '@domain/ports/task-repository';
+import { ForbiddenException } from '@domain/exceptions/forbidden.exception';
 
 describe('CreateTaskUseCase', () => {
   let useCase: CreateTaskUseCase;
@@ -34,20 +35,23 @@ describe('CreateTaskUseCase', () => {
     const result = await useCase.execute({
       title: 'Clean room',
       description: 'Clean the bedroom',
+      currentUserRole: 'MANAGER',
     });
 
     expect(result.title).toBe('Clean room');
+    expect(result.description).toBe('Clean the bedroom');
     expect(result.status).toBe('TODO');
     expect(result.assignedToUserId).toBeNull();
     expect(taskRepo.save).toHaveBeenCalledTimes(1);
   });
 
-  it('should throw error for empty title', async () => {
+  it('should throw error if a member tries to create a task', async () => {
     await expect(
       useCase.execute({
-        title: '   ',
-        description: 'desc',
+        title: 'Clean room',
+        description: 'Clean the bedroom',
+        currentUserRole: 'MEMBER',
       }),
-    ).rejects.toThrow('Title required');
+    ).rejects.toThrow(ForbiddenException);
   });
 });

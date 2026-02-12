@@ -1,4 +1,6 @@
-export class InvalidEmailException extends Error {
+import { DomainException } from './domain.exception';
+
+export class InvalidEmailException extends DomainException {
   constructor(email: string) {
     super(`Invalid email: ${email}`);
     this.name = 'InvalidEmailException';

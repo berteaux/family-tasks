@@ -3,11 +3,14 @@ import {
   TASK_REPOSITORY,
   type TaskRepository,
 } from '@domain/ports/task-repository';
+import { ForbiddenException } from '@domain/exceptions/forbidden.exception';
+import { NotFoundException } from '@domain/exceptions/not-found.exception';
 
 export class CompleteTaskInput {
   constructor(
     public readonly taskId: string,
-    public readonly userId: string,
+    public readonly currentUserId: string,
+    public readonly currentUserRole: 'MANAGER' | 'MEMBER',
   ) {}
 }
 
@@ -17,10 +20,15 @@ export class CompleteTaskUseCase {
 
   async execute(input: CompleteTaskInput): Promise<void> {
     const task = await this.taskRepo.findById(input.taskId);
-    if (!task) throw new Error('Task not found');
+    if (!task) throw new NotFoundException('Task not found');
 
-    if (!task.isAssignedTo(input.userId)) {
-      throw new Error('Task not assigned to this user');
+    const isAssignedUser = task.isAssignedTo(input.currentUserId);
+    const isManager = input.currentUserRole === 'MANAGER';
+
+    if (!isAssignedUser && !isManager) {
+      throw new ForbiddenException(
+        'Only the assigned user or a manager can complete this task',
+      );
     }
 
     task.complete();

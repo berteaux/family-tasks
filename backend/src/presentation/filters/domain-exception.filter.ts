@@ -9,8 +9,11 @@ import { InvalidEmailException } from '@domain/exceptions/invalid-email.exceptio
 import { WeakPasswordException } from '@domain/exceptions/weak-password.exception';
 import { EmailAlreadyExistsException } from '@domain/exceptions/email-already-exists.exception';
 import { InvalidCredentialsException } from '@domain/exceptions/invalid-credentials.exception';
+import { ForbiddenException } from '@domain/exceptions/forbidden.exception';
+import { NotFoundException } from '@domain/exceptions/not-found.exception';
+import { DomainException } from '@domain/exceptions/domain.exception';
 
-@Catch()
+@Catch(DomainException)
 export class DomainExceptionFilter implements ExceptionFilter {
   catch(exception: Error, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -21,6 +24,8 @@ export class DomainExceptionFilter implements ExceptionFilter {
       [WeakPasswordException.name, HttpStatus.BAD_REQUEST],
       [EmailAlreadyExistsException.name, HttpStatus.CONFLICT],
       [InvalidCredentialsException.name, HttpStatus.UNAUTHORIZED],
+      [ForbiddenException.name, HttpStatus.FORBIDDEN],
+      [NotFoundException.name, HttpStatus.NOT_FOUND],
     ]);
 
     const status =

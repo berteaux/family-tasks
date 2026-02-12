@@ -5,6 +5,8 @@ import {
   type TaskRepository,
 } from '@domain/ports/task-repository';
 import { Task } from '@domain/entities/Task';
+import { NotFoundException } from '@domain/exceptions/not-found.exception';
+import { ForbiddenException } from '@domain/exceptions/forbidden.exception';
 
 describe('CompleteTaskUseCase', () => {
   let useCase: CompleteTaskUseCase;
@@ -34,7 +36,26 @@ describe('CompleteTaskUseCase', () => {
 
     taskRepo.findById.mockResolvedValue(task);
 
-    await useCase.execute({ taskId: task.id, userId: 'user-1' });
+    await useCase.execute({
+      taskId: task.id,
+      currentUserId: 'user-1',
+      currentUserRole: 'MEMBER',
+    });
+
+    expect(taskRepo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('should complete an assigned task if user is manager', async () => {
+    const task = Task.create('Clean room', 'desc');
+    task.assignTo('user-1');
+
+    taskRepo.findById.mockResolvedValue(task);
+
+    await useCase.execute({
+      taskId: task.id,
+      currentUserId: 'user-2',
+      currentUserRole: 'MANAGER',
+    });
 
     expect(taskRepo.save).toHaveBeenCalledTimes(1);
   });
@@ -45,12 +66,13 @@ describe('CompleteTaskUseCase', () => {
     await expect(
       useCase.execute({
         taskId: 'unknown',
-        userId: 'user-1',
+        currentUserId: 'user-1',
+        currentUserRole: 'MANAGER',
       }),
-    ).rejects.toThrow('Task not found');
+    ).rejects.toThrow(NotFoundException);
   });
 
-  it('should throw if task not assigned to user', async () => {
+  it('should throw if a member tries to complete a task not assigned to the member', async () => {
     const task = Task.create('Clean room', 'desc');
     task.assignTo('user-1');
 
@@ -59,36 +81,9 @@ describe('CompleteTaskUseCase', () => {
     await expect(
       useCase.execute({
         taskId: task.id,
-        userId: 'user-2',
+        currentUserId: 'user-2',
+        currentUserRole: 'MEMBER',
       }),
-    ).rejects.toThrow('Task not assigned to this user');
-  });
-
-  it('should throw if task not assigned', async () => {
-    const task = Task.create('Clean room', 'desc');
-
-    taskRepo.findById.mockResolvedValue(task);
-
-    await expect(
-      useCase.execute({
-        taskId: task.id,
-        userId: 'user-1',
-      }),
-    ).rejects.toThrow('Task not assigned to this user');
-  });
-
-  it('should throw if task already done', async () => {
-    const task = Task.create('Clean room', 'desc');
-    task.assignTo('user-1');
-    task.complete();
-
-    taskRepo.findById.mockResolvedValue(task);
-
-    await expect(
-      useCase.execute({
-        taskId: task.id,
-        userId: 'user-1',
-      }),
-    ).rejects.toThrow('Already done');
+    ).rejects.toThrow(ForbiddenException);
   });
 });

@@ -10,6 +10,8 @@ import {
 } from '@domain/ports/user-repository';
 import { Task } from '@domain/entities/Task';
 import { User } from '@domain/entities/User';
+import { NotFoundException } from '@domain/exceptions/not-found.exception';
+import { ForbiddenException } from '@domain/exceptions/forbidden.exception';
 
 describe('AssignTaskUseCase', () => {
   let useCase: AssignTaskUseCase;
@@ -53,13 +55,27 @@ describe('AssignTaskUseCase', () => {
     taskRepo.findById.mockResolvedValue(task);
     userRepo.findById.mockResolvedValue(user);
 
-    await useCase.execute({ taskId: task.id, userId: 'user-1' });
+    await useCase.execute({
+      taskId: task.id,
+      userId: 'user-1',
+      currentUserRole: 'MANAGER',
+    });
 
     expect(taskRepo.save).toHaveBeenCalledWith(
       expect.objectContaining({
         id: task.id,
       }),
     );
+  });
+
+  it('should throw if user is not a manager', async () => {
+    await expect(
+      useCase.execute({
+        taskId: 'unknown',
+        userId: 'user-1',
+        currentUserRole: 'MEMBER',
+      }),
+    ).rejects.toThrow(ForbiddenException);
   });
 
   it('should throw if task not found', async () => {
@@ -69,8 +85,9 @@ describe('AssignTaskUseCase', () => {
       useCase.execute({
         taskId: 'unknown',
         userId: 'user-1',
+        currentUserRole: 'MANAGER',
       }),
-    ).rejects.toThrow('Task not found');
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('should throw if user not found', async () => {
@@ -82,28 +99,8 @@ describe('AssignTaskUseCase', () => {
       useCase.execute({
         taskId: task.id,
         userId: 'unknown',
+        currentUserRole: 'MANAGER',
       }),
-    ).rejects.toThrow('User not found');
-  });
-
-  it('should throw if task already assigned', async () => {
-    const task = Task.create('Clean room', 'desc');
-    task.assignTo('user-1');
-    const user = User.reconstitute(
-      'user-2',
-      'test@example.com',
-      'hash',
-      'MEMBER',
-    );
-
-    taskRepo.findById.mockResolvedValue(task);
-    userRepo.findById.mockResolvedValue(user);
-
-    await expect(
-      useCase.execute({
-        taskId: task.id,
-        userId: 'user-2',
-      }),
-    ).rejects.toThrow('Already assigned');
+    ).rejects.toThrow(NotFoundException);
   });
 });

@@ -7,11 +7,14 @@ import {
   USER_REPOSITORY,
   type UserRepository,
 } from '@domain/ports/user-repository';
+import { ForbiddenException } from '@domain/exceptions/forbidden.exception';
+import { NotFoundException } from '@domain/exceptions/not-found.exception';
 
 export class AssignTaskInput {
   constructor(
     public readonly taskId: string,
     public readonly userId: string,
+    public readonly currentUserRole: 'MANAGER' | 'MEMBER',
   ) {}
 }
 
@@ -23,11 +26,15 @@ export class AssignTaskUseCase {
   ) {}
 
   async execute(input: AssignTaskInput): Promise<void> {
+    if (input.currentUserRole !== 'MANAGER') {
+      throw new ForbiddenException('Only managers can assign tasks');
+    }
+
     const task = await this.taskRepo.findById(input.taskId);
-    if (!task) throw new Error('Task not found');
+    if (!task) throw new NotFoundException('Task not found');
 
     const user = await this.userRepo.findById(input.userId);
-    if (!user) throw new Error('User not found');
+    if (!user) throw new NotFoundException('User not found');
 
     task.assignTo(input.userId);
     await this.taskRepo.save(task);
